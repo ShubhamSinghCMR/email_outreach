@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+import pandas as pd
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class RegisterView(APIView):
     def post(self, request):
@@ -67,3 +69,44 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class CSVUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        
+        if not file:
+            return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Read the CSV file using pandas
+            df = pd.read_csv(file)
+            
+            # Validate necessary columns exist
+            required_columns = ['email', 'first_name']  # Example columns
+            for column in required_columns:
+                if column not in df.columns:
+                    raise ValidationError(f"Missing required column: {column}")
+            
+            # Optionally, you can store this data in the database for future use or just return the data for now
+            return Response({
+                "message": "File uploaded and validated successfully.",
+                "data": df.head().to_dict(orient='records')  # Just show a preview of the uploaded data
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class TemplateEditorView(APIView):
+    def post(self, request):
+        template = request.data.get('template')
+        
+        if not template:
+            return Response({"error": "Template is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate placeholders (for simplicity, we just check for {first_name})
+        if '{first_name}' not in template:
+            return Response({"error": "Template must contain {first_name} placeholder."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"message": "Template created successfully.", "template": template}, status=status.HTTP_200_OK)

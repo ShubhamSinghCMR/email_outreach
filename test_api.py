@@ -9,6 +9,9 @@ USER_DATA = {
     "password": "User@pass1"
 }
 
+# Template for email
+TEMPLATE = "Hello {first_name}, welcome to our platform!"
+
 # Register a New User
 def test_register():
     data = {
@@ -50,7 +53,19 @@ def test_logout(refresh_token):
         print("Logout Response:", response.status_code, response.text)
         print("Status: Error")
 
+# Test CSV Upload
+def test_csv_upload():
+    with open('testcsv.csv', 'rb') as file:
+        response = requests.post(f"{BASE_URL}upload-csv/", files={'file': file})
+    print("CSV Upload Response:", response.status_code, response.json())
 
+# Test Template Creation
+def test_template_creation():
+    data = {
+        "template": TEMPLATE
+    }
+    response = requests.post(f"{BASE_URL}template/", json=data)
+    print("Template Response:", response.status_code, response.json())
 
 if __name__ == "__main__":
     print("Testing Registration:")
@@ -58,6 +73,12 @@ if __name__ == "__main__":
     
     print("\nTesting Login:")
     refresh, access = test_login()
+
+    print("Testing CSV Upload:")
+    test_csv_upload()
+
+    print("\nTesting Template Creation:")
+    test_template_creation()
 
     print("\nTesting Logout:")
     if refresh:
