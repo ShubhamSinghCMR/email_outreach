@@ -12,6 +12,13 @@ USER_DATA = {
 # Template for email
 TEMPLATE = "Hello {first_name}, welcome to our platform!"
 
+# Data for sending the email
+email_data = {
+    "subject": "Test Email",
+    "message": "This is a test email sent from Django.",
+    "recipient_list": ["shubhamsinghcmr@gmaail.com","shubhamsinghcmr@gmail.com","itzzshubh@gmail.com"]
+}
+
 # Register a New User
 def test_register():
     data = {
@@ -67,6 +74,17 @@ def test_template_creation():
     response = requests.post(f"{BASE_URL}template/", json=data)
     print("Template Response:", response.status_code, response.json())
 
+# Send Test Mail
+def test_send_email():
+    response = requests.post(f"{BASE_URL}send-email/", json=email_data)
+
+    if response.status_code == 200:
+        print("Email sending started.")
+        print("Sent to valid emails:", response.json().get('sent_to'))
+        print("Not sent to invalid emails:", response.json().get('not_sent_to'))
+    else:
+        print("Error sending email:", response.status_code, response.json())
+
 if __name__ == "__main__":
     print("Testing Registration:")
     test_register()
@@ -79,6 +97,9 @@ if __name__ == "__main__":
 
     print("\nTesting Template Creation:")
     test_template_creation()
+
+    print("\nTesting Email Send:")
+    test_send_email()
 
     print("\nTesting Logout:")
     if refresh:

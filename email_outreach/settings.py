@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -164,6 +168,32 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Use Gmail SMTP server
 EMAIL_PORT = 587  # Port for TLS
 EMAIL_USE_TLS = True  # TLS is recommended for security
-EMAIL_HOST_USER = 'your-email@gmail.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = 'your-email-password'  # Your Gmail app password (not the regular password)
+EMAIL_HOST_USER = os.getenv("GMAIL_ID")  # Your Gmail address
+EMAIL_HOST_PASSWORD = os.getenv("GMAIL_PASSWORD")  # Your Gmail app password (not the regular password)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Default sender email address
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'email_errors.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6380/0'  # Redis as the message broker
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Store results in Redis
+CELERY_TIMEZONE = 'UTC'

@@ -9,6 +9,14 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import pandas as pd
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.conf import settings
+import logging
+from django.core.mail import send_mail, BadHeaderError
+from email_validator import validate_email, EmailNotValidError
+from .tasks import send_email_task  # Import the Celery task
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class RegisterView(APIView):
     def post(self, request):
@@ -110,3 +118,39 @@ class TemplateEditorView(APIView):
             return Response({"error": "Template must contain {first_name} placeholder."}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({"message": "Template created successfully.", "template": template}, status=status.HTTP_200_OK)
+
+class SendEmailView(APIView):
+    def post(self, request):
+        # Get the email details from the payload
+        subject = request.data.get('subject')
+        message = request.data.get('message')
+        recipient_list = request.data.get('recipient_list')
+
+        # Validate the input
+        if not subject or not message or not recipient_list:
+            return Response({'error': 'Subject, message, and recipient list are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate email addresses
+        valid_emails = []
+        invalid_emails = []
+        for email in recipient_list:
+            try:
+                validate_email(email)  # Validate the email format
+                valid_emails.append(email)
+            except EmailNotValidError as e:
+                invalid_emails.append(email)
+                logger.error(f"Invalid email address: {email}. Error: {str(e)}")
+
+        # If there are no valid emails, return an error
+        if not valid_emails:
+            return Response({'error': 'No valid email addresses found in the recipient list.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Enqueue the email sending task using Celery
+        send_email_task.delay(subject, message, valid_emails)
+
+        # Return the response showing emails sent and failed ones
+        return Response({
+            'message': 'Email sending started. Emails will be sent asynchronously.',
+            'sent_to': valid_emails,
+            'not_sent_to': invalid_emails
+        }, status=status.HTTP_200_OK)
