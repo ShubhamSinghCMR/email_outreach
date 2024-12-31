@@ -17,9 +17,13 @@ from .tasks import send_email_task  # Import the Celery task
 from rest_framework.permissions import IsAuthenticated
 import ollama
 import subprocess
+from django.views.generic import TemplateView
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+class WelcomePageView(TemplateView):
+    template_name = "index.html"  # Path to your HTML template
 
 class RegisterView(APIView):
     def post(self, request):
