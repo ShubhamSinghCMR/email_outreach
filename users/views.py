@@ -14,6 +14,9 @@ import logging
 from django.core.mail import send_mail, BadHeaderError
 from email_validator import validate_email, EmailNotValidError
 from .tasks import send_email_task  # Import the Celery task
+from rest_framework.permissions import IsAuthenticated
+import ollama
+import subprocess
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -154,3 +157,38 @@ class SendEmailView(APIView):
             'sent_to': valid_emails,
             'not_sent_to': invalid_emails
         }, status=status.HTTP_200_OK)
+
+class AIGenerateSuggestionsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        description = request.data.get('description')
+
+        if not description:
+            return Response({'error': 'Description is required for generating suggestions.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate AI email subject and body via Ollama
+        try:
+            subject = self.generate_email_subject(description)
+            body = self.generate_email_body(description)
+            return Response({
+                'subject': subject,
+                'body': body,
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': f'Error generating content: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def generate_email_subject(self, description):
+        return self.generate_with_ollama(f"Generate a one-line email subject within 10 words for: : {description}")
+
+    def generate_email_body(self, description):
+        return self.generate_with_ollama(f"Do not create subject. Write an email body for: {description}")
+
+    def generate_with_ollama(self, prompt):
+        # Run the Ollama command in subprocess
+        try:
+            result = subprocess.run(['ollama', 'run', 'llama3.2', prompt], capture_output=True, text=True, check=True)
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"Error running Ollama: {str(e)}")

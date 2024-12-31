@@ -19,6 +19,11 @@ email_data = {
     "recipient_list": ["shubhamsinghcmr@gmaail.com","shubhamsinghcmr@gmail.com","itzzshubh@gmail.com"]
 }
 
+# AI Input
+ai_data = {
+        "description": "New Year Sale"
+    }
+
 # Register a New User
 def test_register():
     data = {
@@ -85,6 +90,17 @@ def test_send_email():
     else:
         print("Error sending email:", response.status_code, response.json())
 
+# Function for AI suggestions
+def ai_suggestion_email(data):
+    response = requests.post(f"{BASE_URL}ai-suggestions/", json=data, headers={'Authorization': f'Bearer {access}'})
+
+    if response.status_code == 200:
+        print("Generated Subject:", response.json()['subject'])
+        print("Generated Body:", response.json()['body'])
+    else:
+        print("Error in AI Suggestion:", response.status_code, response.json())
+
+
 if __name__ == "__main__":
     print("Testing Registration:")
     test_register()
@@ -92,7 +108,7 @@ if __name__ == "__main__":
     print("\nTesting Login:")
     refresh, access = test_login()
 
-    print("Testing CSV Upload:")
+    print("\nTesting CSV Upload:")
     test_csv_upload()
 
     print("\nTesting Template Creation:")
@@ -100,6 +116,9 @@ if __name__ == "__main__":
 
     print("\nTesting Email Send:")
     test_send_email()
+
+    print("\nTesting AI Email Suggestions:")
+    ai_suggestion_email(ai_data)
 
     print("\nTesting Logout:")
     if refresh:

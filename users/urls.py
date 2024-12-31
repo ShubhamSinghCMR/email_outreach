@@ -1,8 +1,7 @@
 from django.urls import path
 from .views import RegisterView, LoginView, LogoutView
 from .views import CSVUploadView, TemplateEditorView
-from .views import SendEmailView
-
+from .views import SendEmailView, AIGenerateSuggestionsView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -11,4 +10,5 @@ urlpatterns = [
     path('upload-csv/', CSVUploadView.as_view(), name='upload-csv'),
     path('template/', TemplateEditorView.as_view(), name='template-editor'),
     path('send-email/', SendEmailView.as_view(), name='send-email'),
+    path('ai-suggestions/', AIGenerateSuggestionsView.as_view(), name='ai-suggestions'),
 ]
