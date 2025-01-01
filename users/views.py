@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from django.contrib.auth.password_validation import validate_password
+from .validators import validate_password_strength
 from django.core.exceptions import ValidationError
 import pandas as pd
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -18,12 +18,23 @@ from rest_framework.permissions import IsAuthenticated
 import ollama
 import subprocess
 from django.views.generic import TemplateView
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 class WelcomePageView(TemplateView):
-    template_name = "index.html"  # Path to your HTML template
+    template_name = "index.html"  # Path to your index.html template
+
+class SigninPageView(TemplateView):
+    template_name = 'signin.html'  # Path to your signup.html template
+
+class SignupPageView(TemplateView):
+    template_name = 'signup.html'  # Path to your signup.html template
+
+class HomeView(TemplateView):
+    template_name = "home.html"
 
 class RegisterView(APIView):
     def post(self, request):
@@ -40,7 +51,7 @@ class RegisterView(APIView):
 
         # Validate the password using Django's inbuilt validators
         try:
-            validate_password(password)
+            validate_password_strength(password)
         except ValidationError as e:
             errors = e.messages
             return Response({

@@ -80,3 +80,22 @@ Traceback (most recent call last):
     raise self.error(
 django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 7: 'static'. Did you forget to register or load this tag?
 "GET / HTTP/1.1" 500 136556
+Internal Server Error: /home/
+Traceback (most recent call last):
+  File "C:\Users\DArk Lord\Desktop\ShubhamSingh-Assignment\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DArk Lord\Desktop\ShubhamSingh-Assignment\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DArk Lord\Desktop\ShubhamSingh-Assignment\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DArk Lord\Desktop\ShubhamSingh-Assignment\env\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DArk Lord\Desktop\ShubhamSingh-Assignment\email_outreach\users\views.py", line 40, in get
+    return JsonResponse({"error": "Unauthorized"}, status=401)
+           ^^^^^^^^^^^^
+NameError: name 'JsonResponse' is not defined
+"GET /home/ HTTP/1.1" 500 80165

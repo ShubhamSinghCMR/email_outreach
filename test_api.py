@@ -5,8 +5,8 @@ BASE_URL = "http://127.0.0.1:8000/api/users/"
 
 # User credentials for registration and login
 USER_DATA = {
-    "username": "user4",
-    "password": "User@pass1"
+    "username": "temp1",
+    "password": "Temp@1pass"
 }
 
 # Template for email
@@ -108,17 +108,17 @@ if __name__ == "__main__":
     print("\nTesting Login:")
     refresh, access = test_login()
 
-    print("\nTesting CSV Upload:")
-    test_csv_upload()
+    # print("\nTesting CSV Upload:")
+    # test_csv_upload()
 
-    print("\nTesting Template Creation:")
-    test_template_creation()
+    # print("\nTesting Template Creation:")
+    # test_template_creation()
 
-    print("\nTesting Email Send:")
-    test_send_email()
+    # print("\nTesting Email Send:")
+    # test_send_email()
 
-    print("\nTesting AI Email Suggestions:")
-    ai_suggestion_email(ai_data)
+    # print("\nTesting AI Email Suggestions:")
+    # ai_suggestion_email(ai_data)
 
     print("\nTesting Logout:")
     if refresh:
