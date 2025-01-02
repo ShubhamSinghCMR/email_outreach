@@ -112,6 +112,20 @@ def test_user_templates(session):
     else:
         print("Error retrieving templates:", response.status_code, response.json())
 
+# Test Get Email Status
+def test_email_status(session, csrf_token):
+    headers = {'X-CSRFToken': csrf_token}
+    response = session.get(f"{BASE_URL}email-status/", headers=headers)
+
+    if response.status_code == 200:
+        print("Email Status Response:", response.status_code)
+        print("Number of Successful Emails:", response.json().get('success_count'))
+        print("Number of Failed Emails:", response.json().get('fail_count'))
+        print("Successful Emails:", response.json().get('successful_emails'))
+        print("Failed Emails:", response.json().get('failed_emails'))
+    else:
+        print("Error fetching email status:", response.status_code, response.json())
+
 
 if __name__ == "__main__":
     # Create a session to manage cookies
@@ -137,6 +151,9 @@ if __name__ == "__main__":
             # Uncomment the following block to test email sending
             print("\nTesting Email Send:")
             test_send_email(session, csrf_token)
+
+            print("\nTesting Email Status:")
+            test_email_status(session, csrf_token)  # Added the Email Status Test here
 
             # Uncomment the following block to test AI email suggestions
             print("\nTesting AI Email Suggestions:")

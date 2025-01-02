@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .validators import validate_password_strength
+from .models import EmailTrack
 from django.core.exceptions import ValidationError
 import re
 import pandas as pd
@@ -200,26 +201,23 @@ class SendEmailView(APIView):
         message = request.data.get('message')
         recipient_list = request.data.get('recipient_list')
 
-        # Print the incoming data
-        print(f"Received email data: Subject: {subject}, Message: {message}, Recipient List: {recipient_list}")
-
         # Validate the input
         if not subject or not message or not recipient_list:
-            print("Missing required fields: subject, message, or recipient_list.")
             return Response({"error": "Subject, message, and recipient list are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Define valid domains
         valid_domains = ["gmail.com", "yahoo.com", "outlook.com"]  # Add any other domains you need to validate
 
+        # Get the current user
+        user = request.user
+
         # Validate email addresses
         valid_emails = []
         invalid_emails = []
-        # print("Starting email validation")
         for email in recipient_list:
             try:
-                print(f"Validating: {email}")
                 # Regular expression for simple email validation
-                regex = r'^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)$'
+                regex = r'^[a-zA-Z0-9_.+-]+@([a-zAZ0-9-]+\.[a-zA-Z0-9-.]+)$'
                 match = re.match(regex, email)  # Simple email format validation
                 if match:
                     domain = match.group(1)
@@ -227,22 +225,35 @@ class SendEmailView(APIView):
                         valid_emails.append(email)
                     else:
                         invalid_emails.append(email)
-                        # print(f"Invalid domain in email address: {email}")
                 else:
                     invalid_emails.append(email)
-                    # print(f"Invalid email address: {email}")
             except Exception as e:
                 invalid_emails.append(email)
-                # print(f"Error validating {email}: {str(e)}")
-
-        # print(f"Valid emails: {valid_emails}, Invalid emails: {invalid_emails}")
 
         # Enqueue the email sending task using Celery
         try:
             send_email_task.delay(subject, message, valid_emails)
-            # print("Email sending task has been queued.")
+            # Log each valid email to EmailTrack model
+            for email in valid_emails:
+                EmailTrack.objects.create(
+                    username=user, 
+                    recipient=email, 
+                    status='success', 
+                    subject=subject, 
+                    message=message
+                )
+            for email in invalid_emails:
+                    EmailTrack.objects.create(
+                        username=user, 
+                        recipient=email, 
+                        status='fail', 
+                        subject=subject, 
+                        message=message
+                    )
         except Exception as e:
-            print(f"Failed to enqueue email sending task: {str(e)}")
+            # Log failed emails to EmailTrack model
+            print("Error: ",e)
+            
 
         # Return the response showing emails sent and failed ones
         response_data = {
@@ -250,7 +261,6 @@ class SendEmailView(APIView):
             "sent_to": valid_emails,
             "not_sent_to": invalid_emails
         }
-        # print(f"Response data: {response_data}")
 
         return Response(response_data, status=status.HTTP_200_OK)
 
@@ -309,3 +319,32 @@ class UserTemplatesView(APIView):
         except Exception as e:
             logger.error(f"Error fetching templates for user {request.user.username}: {str(e)}")
             return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class EmailStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the current user
+        user = request.user
+
+        # Query the EmailTrack model for the current user's email statuses
+        successful_emails = EmailTrack.objects.filter(username=user, status='success')
+        failed_emails = EmailTrack.objects.filter(username=user, status='fail')
+
+        # Count the number of successful and failed emails
+        success_count = successful_emails.count()
+        fail_count = failed_emails.count()
+
+        # Get the details of successful and failed emails
+        success_list = successful_emails.values('recipient', 'subject', 'email_sent_date', 'message')
+        fail_list = failed_emails.values('recipient', 'subject', 'email_sent_date', 'message')
+
+        # Prepare the response data
+        response_data = {
+            "success_count": success_count,
+            "fail_count": fail_count,
+            "successful_emails": list(success_list),
+            "failed_emails": list(fail_list)
+        }
+
+        return Response(response_data, status=200)

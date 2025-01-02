@@ -42,3 +42,14 @@ class EmailTemplate(models.Model):
 
     def __str__(self):
         return f"Template by {self.username} at {self.created_at}"
+    
+class EmailTrack(models.Model):
+    username = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    recipient = models.EmailField()
+    status = models.CharField(max_length=10, choices=[('success', 'Success'), ('fail', 'Fail')])
+    email_sent_date = models.DateTimeField(auto_now_add=True)
+    subject = models.CharField(max_length=255)  # To store the subject of the email
+    message = models.TextField()  # To store the content of the email
+
+    def __str__(self):
+        return f"Email to {self.recipient} by {self.username} at {self.email_sent_date}"
