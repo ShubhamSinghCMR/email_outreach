@@ -40,6 +40,9 @@ class SignupPageView(TemplateView):
 class HomeView(TemplateView):
     template_name = "home.html"
 
+class SendEmailPageView(TemplateView):
+    template_name = "send-email.html"
+
 class RegisterView(APIView):
     def post(self, request):
         username = request.data.get('username')
@@ -188,6 +191,8 @@ class TemplateEditorView(APIView):
 
 
 class SendEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         # Get the email details from the payload
         subject = request.data.get('subject')
@@ -196,7 +201,7 @@ class SendEmailView(APIView):
 
         # Validate the input
         if not subject or not message or not recipient_list:
-            return Response({'error': 'Subject, message, and recipient list are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Subject, message, and recipient list are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate email addresses
         valid_emails = []
@@ -211,21 +216,23 @@ class SendEmailView(APIView):
 
         # If there are no valid emails, return an error
         if not valid_emails:
-            return Response({'error': 'No valid email addresses found in the recipient list.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "No valid email addresses found in the recipient list."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Enqueue the email sending task using Celery
         send_email_task.delay(subject, message, valid_emails)
 
+
+
         # Return the response showing emails sent and failed ones
         return Response({
-            'message': 'Email sending started. Emails will be sent asynchronously.',
-            'sent_to': valid_emails,
-            'not_sent_to': invalid_emails
+            "message": "Email sending started. Emails will be sent asynchronously.",
+            "sent_to": valid_emails,
+            "not_sent_to": invalid_emails
         }, status=status.HTTP_200_OK)
 
 class AIGenerateSuggestionsView(APIView):
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [IsAuthenticated]  # Ensure user is authenticated
+
     def post(self, request):
         description = request.data.get('description')
 

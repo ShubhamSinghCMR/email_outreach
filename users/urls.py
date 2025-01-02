@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import RegisterView, LoginView, LogoutView
 from .views import CSVUploadView, TemplateEditorView
-from .views import SendEmailView, AIGenerateSuggestionsView, CheckAuthenticationView
+from .views import SendEmailView, AIGenerateSuggestionsView, CheckAuthenticationView, SendEmailPageView
 from .views import WelcomePageView, SignupPageView, SigninPageView, HomeView, CSVUploadView, CSVValidationView, CreateTemplateView
 
 urlpatterns = [
@@ -19,4 +19,5 @@ urlpatterns = [
     path('send-email/', SendEmailView.as_view(), name='send-email'),
     path('ai-suggestions/', AIGenerateSuggestionsView.as_view(), name='ai-suggestions'),
     path('check-authentication/', CheckAuthenticationView.as_view(), name='check-authentication'),
+    path('send-email-page/', SendEmailPageView.as_view(), name='send-email-page'),
 ]

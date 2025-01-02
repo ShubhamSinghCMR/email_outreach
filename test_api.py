@@ -79,6 +79,7 @@ def test_template_creation(session, csrf_token):
     response = session.post(f"{BASE_URL}template/", json=data, headers=headers)
     print("Template Response:", response.status_code, response.json())
 
+
 # Send Test Mail
 def test_send_email(session, csrf_token):
     headers = {'X-CSRFToken': csrf_token}
@@ -125,8 +126,8 @@ if __name__ == "__main__":
             test_template_creation(session, csrf_token)
 
             # Uncomment the following block to test email sending
-            # print("\nTesting Email Send:")
-            # test_send_email(session, csrf_token)
+            print("\nTesting Email Send:")
+            test_send_email(session, csrf_token)
 
             # Uncomment the following block to test AI email suggestions
             # print("\nTesting AI Email Suggestions:")

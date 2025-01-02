@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Email</title>
+    {% include 'header.html' %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        // Redirect to login if not authenticated, before page loads
+        window.onload = function() {
+            fetch('/api/users/check-authentication/', {
+                method: 'GET',
+                credentials: 'same-origin'  // Ensure session cookie is sent with the request
+            })
+            .then(response => {
+                if (!response.ok) {
+                    alert("Please log in first.");
+                    window.location.href = "/";  // Redirect to login page
+                }
+            })
+            .catch(error => {
+                console.error("Error checking authentication:", error);
+                alert("An error occurred. Please log in.");
+                window.location.href = "/";  // Redirect to login page
+            });
+        };
+
+        // Get CSRF token from the form
+        function getCsrfToken() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            return csrfToken;
+        }
+        
+        // Function to send email
+        async function sendEmail() {
+            const subject = document.getElementById("subject").value;
+            const message = document.getElementById("email-content").value;
+            const recipientList = document.getElementById("recipients").value.split(',').map(email => email.trim());
+            const responseMessageDiv = document.getElementById("response-message");
+
+            if (!subject || !message || recipientList.length === 0) {
+                responseMessageDiv.style.display = 'block';
+                responseMessageDiv.innerHTML = ` 
+                    <div class="alert alert-danger">
+                        Subject, message, and recipient list are required.
+                    </div>
+                `;
+                return;
+            }
+
+            // Get CSRF token from the form
+            const csrfToken = getCsrfToken();
+
+            try {
+                const response = await fetch("/api/users/send-email/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,  // CSRF Token here
+                    },
+                    body: JSON.stringify({
+                        subject: subject,
+                        message: message,
+                        recipient_list: recipientList
+                    }),
+                    credentials: "same-origin"  // Ensure cookies (for session auth) are included
+                });
+
+                // Check if the response is a JSON response
+                const contentType = response.headers.get("Content-Type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const responseText = await response.text();  // Get the response as text
+                    console.error("Non-JSON response received:", responseText);  // Print the response
+                    throw new Error("Received non-JSON response from the server");
+                }
+
+
+                const data = await response.json();
+
+                responseMessageDiv.style.display = 'block';
+                if (response.ok) {
+                    responseMessageDiv.innerHTML = ` 
+                        <div class="alert alert-success">
+                            Email sending started.
+                        </div>
+                        <div>Sent to: ${data.sent_to.join(', ')}</div>
+                        <div>Not Sent to: ${data.not_sent_to.join(', ')}</div>
+                    `;
+                } else {
+                    responseMessageDiv.innerHTML = ` 
+                        <div class="alert alert-danger">
+                            Error: ${data.error || 'Failed to send emails.'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Error during fetch:", error);
+                responseMessageDiv.style.display = 'block';
+                responseMessageDiv.innerHTML = ` 
+                    <div class="alert alert-danger">
+                        An error occurred: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Send Email</h1>
+        <div class="row">
+            <div class="col-md-7">
+                <h3>Email Form</h3>
+                <!-- Email Form -->
+                <form id="email-form">
+                    <div class="mb-3">
+                        <label for="recipients" class="form-label">Recipients</label>
+                        <input type="text" class="form-control" id="recipients" placeholder="Enter email recipients (comma separated)" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" placeholder="Enter email subject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email-content" class="form-label">Email Content</label>
+                        <textarea class="form-control" id="email-content" rows="6" placeholder="Enter email content" required></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="sendEmail()">Send Email</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Cancel</button>
+                </form>
+            </div>
+
+            <div class="col-md-5">
+                <h3>Generate Content Using AI</h3>
+                <!-- AI Input and Generate Button -->
+                <div class="mb-3">
+                    <label for="ai-input" class="form-label">Enter Input</label>
+                    <textarea class="form-control" id="ai-input" rows="6" placeholder="Enter your input for AI generation" required></textarea>
+                </div>
+                <button type="button" class="btn btn-success" onclick="generateEmailContent()">Generate Using AI</button>
+                <div id="response-message" class="mt-4" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Email Templates Carousel -->
+        <div class="mt-5">
+            <h3>Email Templates</h3>
+            <div id="template-carousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner" id="carousel-templates">
+                    <!-- Template items will be inserted dynamically -->
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#template-carousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#template-carousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
