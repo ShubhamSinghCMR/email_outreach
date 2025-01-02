@@ -10,10 +10,12 @@ The project is an AI-powered Email Outreach Platform designed to streamline emai
 - **Validation and Logging:** Validate inputs (e.g., email format) and log errors for debugging and performance monitoring.
 
 This platform simplifies email outreach and enhances campaign personalization using AI insights.
+
 ---
 
 # AI Integration:
 The platform utilizes the Llama3.2 AI model to generate email content. The idea is provided as a prompt to the AI, which then generates both the subject line and email body dynamically based on the given input. This integration helps streamline the content creation process and allows users to quickly generate professional email drafts for their campaigns.
+
 ---
 
 # Setup and Installation instructions (Windows): 
