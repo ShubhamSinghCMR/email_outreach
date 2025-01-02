@@ -6,19 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_emailtrack'),
+        ("users", "0002_emailtrack"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='emailtrack',
-            name='message',
+            model_name="emailtrack",
+            name="message",
             field=models.TextField(default=32),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='emailtrack',
-            name='subject',
+            model_name="emailtrack",
+            name="subject",
             field=models.CharField(default=32, max_length=255),
             preserve_default=False,
         ),

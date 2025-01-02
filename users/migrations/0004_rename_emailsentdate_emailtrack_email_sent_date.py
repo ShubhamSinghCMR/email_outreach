@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0003_emailtrack_message_emailtrack_subject'),
+        ("users", "0003_emailtrack_message_emailtrack_subject"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='emailtrack',
-            old_name='emailsentdate',
-            new_name='email_sent_date',
+            model_name="emailtrack",
+            old_name="emailsentdate",
+            new_name="email_sent_date",
         ),
     ]

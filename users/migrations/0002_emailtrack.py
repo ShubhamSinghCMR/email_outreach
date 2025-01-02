@@ -8,18 +8,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EmailTrack',
+            name="EmailTrack",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('emailsentdate', models.DateTimeField(auto_now_add=True)),
-                ('recipient', models.EmailField(max_length=254)),
-                ('status', models.CharField(choices=[('success', 'Success'), ('fail', 'Fail')], max_length=10)),
-                ('username', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("emailsentdate", models.DateTimeField(auto_now_add=True)),
+                ("recipient", models.EmailField(max_length=254)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("success", "Success"), ("fail", "Fail")],
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "username",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

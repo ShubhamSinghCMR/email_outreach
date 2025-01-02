@@ -11,7 +11,7 @@
         window.onload = function() {
             fetch('/api/users/check-authentication/', {
                 method: 'GET',
-                credentials: 'same-origin'  // Ensure session cookie is sent with the request
+                credentials: 'same-origin'
             })
             .then(response => {
                 if (!response.ok) {
@@ -36,18 +36,15 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Create Email Template</h1>
-        
-        <!-- Template Creation Form -->
         <form id="template-create-form" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
-                <label for="template" class="form-label">Enter Template</label>
+                <label for="template" class="form-label">You can use following placeholders: {email}, {first_name} </label>
                 <textarea class="form-control" id="template" name="template" rows="5" placeholder="Enter template here, e.g., 'Hello {first_name}, welcome to our platform!'" required></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Create Template</button>
         </form>
 
-        <!-- Response Message -->
         <div id="response-message" class="mt-4" style="display:none;"></div>
 
     </div>
@@ -70,12 +67,12 @@
                     body: formData,
                     credentials: "same-origin",  // Ensures session cookies are sent automatically
                     headers: {
-                        "X-CSRFToken": getCsrfToken(),  // Add CSRF token to request header
+                        "X-CSRFToken": getCsrfToken(),  
                     },
                 });
 
-                const responseText = await response.text();  // Read response as text first
-                console.log("Response Text:", responseText);  // Inspect the raw response
+                const responseText = await response.text(); 
+                console.log("Response Text:", responseText); 
 
                 // Parse the response only if it's valid JSON
                 const data = JSON.parse(responseText);

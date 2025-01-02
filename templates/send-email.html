@@ -12,9 +12,9 @@
                 background-color: black; 
             }
             .carousel-inner .carousel-item {
-            width: 70%; /* Set width as a percentage */
-            margin-left: 150px; /* Add left spacing */
-            margin-bottom: 100px; /* Add bottom spacing */
+            width: 70%; 
+            margin-left: 150px;
+            margin-bottom: 100px;
         }
         </style>
         
@@ -23,7 +23,7 @@
         window.onload = function() {
             fetch('/api/users/check-authentication/', {
                 method: 'GET',
-                credentials: 'same-origin'  // Ensure session cookie is sent with the request
+                credentials: 'same-origin'  
             })
             .then(response => {
                 if (!response.ok) {
@@ -69,7 +69,7 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken,  // CSRF Token here
+                        "X-CSRFToken": csrfToken, 
                     },
                     body: JSON.stringify({
                         subject: subject,
@@ -82,8 +82,8 @@
                 // Check if the response is a JSON response
                 const contentType = response.headers.get("Content-Type");
                 if (!contentType || !contentType.includes("application/json")) {
-                    const responseText = await response.text();  // Get the response as text
-                    console.error("Non-JSON response received:", responseText);  // Print the response
+                    const responseText = await response.text();  
+                    console.error("Non-JSON response received:", responseText);  
                     throw new Error("Received non-JSON response from the server");
                 }
 
@@ -137,7 +137,7 @@ async function generateEmailContent() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken,  // CSRF Token here
+                "X-CSRFToken": csrfToken,  
             },
             body: JSON.stringify({ description: aiInput }),
             credentials: "same-origin"  // Ensure cookies (for session auth) are included
@@ -146,8 +146,8 @@ async function generateEmailContent() {
         // Check if the response is a JSON response
         const contentType = response.headers.get("Content-Type");
         if (!contentType || !contentType.includes("application/json")) {
-            const responseText = await response.text();  // Get the response as text
-            console.error("Non-JSON response received:", responseText);  // Print the response
+            const responseText = await response.text();
+            console.error("Non-JSON response received:", responseText);  
             throw new Error("Received non-JSON response from the server");
         }
 
@@ -184,9 +184,7 @@ async function generateEmailContent() {
 }
  // Function to reset the form
  function resetForm() {
-        // Clear the fields
         document.getElementById("email-form").reset();
-        // Clear AI input and response message
         document.getElementById("ai-input").value = '';
         document.getElementById("response-message").style.display = 'none';
     }
@@ -298,7 +296,6 @@ async function generateEmailContent() {
 
 <script>
     // Function to fetch and display templates for the current logged-in user
-   // Function to fetch and display templates for the current logged-in user
 async function fetchTemplates() {
     const responseMessageDiv = document.getElementById("response-message");
 
@@ -308,7 +305,7 @@ async function fetchTemplates() {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken,  // CSRF Token here
+                "X-CSRFToken": csrfToken, 
             },
             credentials: "same-origin"  // Ensure cookies (for session auth) are included
         });
@@ -316,13 +313,13 @@ async function fetchTemplates() {
         const data = await response.json();
         if (response.ok) {
             const carouselContainer = document.getElementById("carousel-templates");
-            carouselContainer.innerHTML = '';  // Clear the previous templates
+            carouselContainer.innerHTML = ''; 
 
             if (data.templates.length > 0) {
                 data.templates.forEach((template, index) => {
                     const templateItem = document.createElement('div');
                     templateItem.classList.add('carousel-item');
-                    if (index === 0) templateItem.classList.add('active');  // Ensure the first item is active
+                    if (index === 0) templateItem.classList.add('active'); 
 
                     templateItem.innerHTML = `
                         <div class="d-block w-100" style="background-color: #f8f9fa; padding: 20px;" onclick="insertTemplateContent('${template.created_template}')">
@@ -364,8 +361,6 @@ function insertTemplateContent(templateBody) {
     document.getElementById("email-content").value = templateBody;
 }
 
-
-
     // Call the fetchTemplates function when the page loads
     window.onload = function() {
         fetchTemplates();
@@ -379,7 +374,6 @@ function insertTemplateContent(templateBody) {
         <div class="row">
             <div class="col-md-7">
                 <h3>Email Form</h3>
-                <!-- Email Form -->
                 <form id="email-form">
                     <div class="mb-3">
                         <label for="recipients" class="form-label">Recipients</label>
@@ -401,7 +395,6 @@ function insertTemplateContent(templateBody) {
 
             <div class="col-md-5">
                 <h3>Generate Content Using AI</h3>
-                <!-- AI Input and Generate Button -->
                 <div class="mb-3">
                     <label for="ai-input" class="form-label">Enter Input</label>
                     <textarea class="form-control" id="ai-input" rows="6" placeholder="Enter your input for AI generation" required></textarea>
@@ -411,7 +404,6 @@ function insertTemplateContent(templateBody) {
             </div>
         </div>
 
-        <!-- Email Templates Carousel -->
 <div class="mt-5">
     <h3>Email Templates</h3>
     <div id="template-carousel" class="carousel slide" data-bs-ride="carousel">

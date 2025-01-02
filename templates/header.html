@@ -71,11 +71,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.message === "User is authenticated") {
-
-                    // Display loggeduser
-                    // console.log("Logged-in username:", data.loggeduserinx); 
-                    // document.getElementById("loggeduser").style.display = "inline-block";
-                    // document.getElementById("loggeduser").textContent = `Hi: ${data.loggeduserinx}`;
                     // // Show logged-in options
                     document.getElementById("home-link").style.display = "block";
                     document.getElementById("csv-link").style.display = "block";

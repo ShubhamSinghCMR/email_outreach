@@ -16,7 +16,7 @@
         <div class="text-center">
             <h1 class="display-4">Create an Account</h1>
             <form id="signup-form" method="POST">
-                {% csrf_token %}  <!-- CSRF token added here -->
+                {% csrf_token %}  
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" class="form-control" id="username" name="username" required>
@@ -50,7 +50,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken // Add CSRF token to the headers
+                    "X-CSRFToken": csrfToken 
                 },
                 body: JSON.stringify({
                     username: username,
@@ -58,19 +58,19 @@
                 })
             })
             .then(response => {
-                console.log("Response status:", response.status);  // Log the response status
+                console.log("Response status:", response.status);  
 
                 if (response.status === 201) {
                     console.log("Registration successful.");
                     alert("Registration successful!");
                     window.location.href = "/signin/"; // Redirect to login page
                 } else {
-                    return response.json();  // Parse the response body if status is not 201
+                    return response.json(); 
                 }
             })
             .then(data => {
                 if (data) {
-                    console.log("Response data:", data);  // Log the full response data
+                    console.log("Response data:", data);  
 
                     if (data.error === "User already exists.") {
                         console.error("Error: User already exists");

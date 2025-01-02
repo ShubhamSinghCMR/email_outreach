@@ -37,7 +37,7 @@
                 });
 
             // Fetch email status
-            fetch('/api/users/email-status/')  // API endpoint for fetching email status
+            fetch('/api/users/email-status/')  
                 .then(response => response.json())
                 .then(data => {
                     successEmails = data.successful_emails;
@@ -45,7 +45,7 @@
                     document.getElementById('success-count').textContent = data.success_count;
                     document.getElementById('fail-count').textContent = data.fail_count;
                     displayEmails();
-                    displayPieChart(data.success_count, data.fail_count);  // Call the function to display pie chart
+                    displayPieChart(data.success_count, data.fail_count);
                 })
                 .catch(error => {
                     console.error("Error fetching email status:", error);
@@ -142,7 +142,7 @@
                             position: 'top',
                             labels: {
                                 font: {
-                                    size: 16, // Adjust legend text size
+                                    size: 16, 
                                 }
                             }
                         },
@@ -156,12 +156,12 @@
                     },
                     elements: {
                         arc: {
-                            borderWidth: 0 // Removes border for a smoother look
+                            borderWidth: 0 
                         }
                     },
                     animation: {
-                        animateScale: true, // Makes the chart grow from the center
-                        animateRotate: true // Adds a rotation effect
+                        animateScale: true, 
+                        animateRotate: true 
                     }
                 }
             });
@@ -169,7 +169,6 @@
     </script>
 
     <style>
-        /* Force chart size */
         #emailStatusChart {
             width: 400px !important;
             height: 400px !important;
@@ -178,7 +177,6 @@
             margin-right: auto;
         }
 
-        /* Optional: Add some space between the chart and the content */
         .container {
             margin-top: 30px;
         }
@@ -197,7 +195,7 @@
                     <p><strong>Number of Successful Emails:</strong> <span id="success-count">0</span></p>
                     <p><strong>Number of Failed Emails:</strong> <span id="fail-count">0</span></p>
                     
-                    <!-- Pie Chart (Centered with Larger Text) -->
+                    <!-- Pie Chart -->
                     <canvas id="emailStatusChart"></canvas>
             
                     <div class="row">
