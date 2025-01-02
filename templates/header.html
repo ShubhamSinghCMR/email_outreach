@@ -26,7 +26,7 @@
                         <a id="csv-link" class="nav-link" href="/upload-csv/" style="display:none;">CSV Validation</a>
                     </li>
                     <li class="nav-item">
-                        <a id="template-link" class="nav-link" href="/template/" style="display:none;">Create Email Template</a>
+                        <a id="template-link" class="nav-link" href="/create-template/" style="display:none;">Create Email Template</a>
                     </li>
                     <li class="nav-item">
                         <a id="send-email-link" class="nav-link" href="/send-email/" style="display:none;">Mail Someone</a>
@@ -45,62 +45,77 @@
         </div>
     </nav>
 
+    <!-- CSRF Token Form -->
+    <form method="POST" style="display: none;">
+        {% csrf_token %}
+    </form>
+
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
     <script>
-        // Check if user is authenticated
-        const refresh_token = localStorage.getItem("refresh_token");
+        // Ensure DOM is fully loaded before accessing the CSRF token and other elements
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get the CSRF token from the hidden form
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        // If the user is authenticated, show logged-in options
-        if (refresh_token) {
-            document.getElementById("home-link").style.display = "block";
-            document.getElementById("csv-link").style.display = "block";
-            document.getElementById("template-link").style.display = "block";
-            document.getElementById("send-email-link").style.display = "block";
-            document.getElementById("logout-link").style.display = "block";
-            document.getElementById("signin-link").style.display = "none";
-            document.getElementById("signup-link").style.display = "none";
-        } else {
-            // If the user is not authenticated, show Sign In option
-            document.getElementById("signin-link").style.display = "block";
-            document.getElementById("signup-link").style.display = "block";
-        }
-
-        // Logout function (using fetch instead of GET request)
-        document.getElementById("logout-link").addEventListener("click", function(event) {
-            event.preventDefault(); // Prevent the default anchor behavior
-
-            const refresh_token = localStorage.getItem("refresh_token");
-
-            if (!refresh_token) {
-                alert("No refresh token found. Please log in again.");
-                window.location.href = "/";  // Redirect to the welcome page (index.html)
-                return;
-            }
-
-            fetch("/api/users/logout/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    refresh: refresh_token
-                })
+            // Check if user is authenticated (session-based check from server)
+            fetch('/api/users/check-authentication/', {
+                method: 'GET',
+                credentials: 'same-origin',  // Ensures cookies (sessions) are sent with the request
             })
-            .then(response => {
-                if (response.status === 205) {
-                    localStorage.removeItem("refresh_token");  // Remove refresh token
-                    window.location.href = "/";  // Redirect to the welcome page
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "User is authenticated") {
+                    // Show logged-in options
+                    document.getElementById("home-link").style.display = "block";
+                    document.getElementById("csv-link").style.display = "block";
+                    document.getElementById("template-link").style.display = "block";
+                    document.getElementById("send-email-link").style.display = "block";
+                    document.getElementById("logout-link").style.display = "block";
+                    document.getElementById("signin-link").style.display = "none";
+                    document.getElementById("signup-link").style.display = "none";
                 } else {
-                    response.json().then(data => {
-                        alert(data.error || "Logout failed, please try again.");
-                    });
+                    // Show sign-in/signup options
+                    document.getElementById("signin-link").style.display = "block";
+                    document.getElementById("signup-link").style.display = "block";
+                    document.getElementById("home-link").style.display = "none";
+                    document.getElementById("csv-link").style.display = "none";
+                    document.getElementById("template-link").style.display = "none";
+                    document.getElementById("send-email-link").style.display = "none";
+                    document.getElementById("logout-link").style.display = "none";
                 }
             })
             .catch(error => {
-                console.error("Error:", error);
-                alert("An error occurred. Please try again.");
+                console.error("Error checking authentication:", error);
+                alert("Error checking authentication.");
+            });
+
+            // Logout function (using fetch for session-based logout)
+            document.getElementById("logout-link").addEventListener("click", function(event) {
+                event.preventDefault(); // Prevent the default anchor behavior
+
+                fetch("/api/users/logout/", {
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': csrfToken,  // Attach CSRF token to the request
+                    },
+                    credentials: 'same-origin',  // Ensure session cookies are included
+                })
+                .then(response => {
+                    if (response.status === 205) {
+                        window.location.href = "/";  // Redirect to the welcome page
+                    } else {
+                        response.json().then(data => {
+                            alert(data.error || "Logout failed, please try again.");
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error during logout:", error);
+                    alert("An error occurred. Please try again.");
+                });
             });
         });
     </script>

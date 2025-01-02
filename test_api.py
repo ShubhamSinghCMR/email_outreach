@@ -5,7 +5,7 @@ BASE_URL = "http://127.0.0.1:8000/api/users/"
 
 # User credentials for registration and login
 USER_DATA = {
-    "username": "temp1",
+    "username": "temp123",
     "password": "Temp@1pass"
 }
 
@@ -16,13 +16,13 @@ TEMPLATE = "Hello {first_name}, welcome to our platform!"
 email_data = {
     "subject": "Test Email",
     "message": "This is a test email sent from Django.",
-    "recipient_list": ["shubhamsinghcmr@gmaail.com","shubhamsinghcmr@gmail.com","itzzshubh@gmail.com"]
+    "recipient_list": ["shubhamsinghcmr@gmaail.com", "shubhamsinghcmr@gmail.com", "itzzshubh@gmail.com"]
 }
 
 # AI Input
 ai_data = {
-        "description": "New Year Sale"
-    }
+    "description": "New Year Sale"
+}
 
 # Register a New User
 def test_register():
@@ -38,26 +38,24 @@ def test_register():
         print("Status: Error")
 
 # Login with the Registered User
-def test_login():
+def test_login(session):
     data = {
         "username": USER_DATA["username"],
         "password": USER_DATA["password"]
     }
-    response = requests.post(f"{BASE_URL}login/", json=data)
+    response = session.post(f"{BASE_URL}login/", json=data)
     print("Login Response:", response.status_code, response.json())
     if response.status_code == 200:
         print("Status: Logged in")
-        return response.json().get('refresh'), response.json().get('access')
+        return session
     else:
         print("Status: Invalid credentials")
-        return None, None
+        return None
 
 # Logout the User
-def test_logout(refresh_token):
-    data = {"refresh": refresh_token}
-    response = requests.post(f"{BASE_URL}logout/", json=data)
-    
-    # Check status code first
+def test_logout(session, csrf_token):
+    headers = {'X-CSRFToken': csrf_token}
+    response = session.post(f"{BASE_URL}logout/", headers=headers)
     if response.status_code == 205:
         print("Logout Response:", response.status_code)
         print("Status: Logged out")
@@ -66,22 +64,25 @@ def test_logout(refresh_token):
         print("Status: Error")
 
 # Test CSV Upload
-def test_csv_upload():
+def test_csv_upload(session, csrf_token):
     with open('testcsv2.csv', 'rb') as file:
-        response = requests.post(f"{BASE_URL}csv-validation/", files={'file': file})
+        headers = {'X-CSRFToken': csrf_token}
+        response = session.post(f"{BASE_URL}csv-validation/", files={'file': file}, headers=headers)
     print("CSV Upload Response:", response.status_code, response.json())
 
 # Test Template Creation
-def test_template_creation():
+def test_template_creation(session, csrf_token):
     data = {
         "template": TEMPLATE
     }
-    response = requests.post(f"{BASE_URL}template/", json=data)
+    headers = {'X-CSRFToken': csrf_token}
+    response = session.post(f"{BASE_URL}template/", json=data, headers=headers)
     print("Template Response:", response.status_code, response.json())
 
 # Send Test Mail
-def test_send_email():
-    response = requests.post(f"{BASE_URL}send-email/", json=email_data)
+def test_send_email(session, csrf_token):
+    headers = {'X-CSRFToken': csrf_token}
+    response = session.post(f"{BASE_URL}send-email/", json=email_data, headers=headers)
 
     if response.status_code == 200:
         print("Email sending started.")
@@ -91,8 +92,9 @@ def test_send_email():
         print("Error sending email:", response.status_code, response.json())
 
 # Function for AI suggestions
-def ai_suggestion_email(data):
-    response = requests.post(f"{BASE_URL}ai-suggestions/", json=data, headers={'Authorization': f'Bearer {access}'})
+def ai_suggestion_email(session, csrf_token, data):
+    headers = {'X-CSRFToken': csrf_token}
+    response = session.post(f"{BASE_URL}ai-suggestions/", json=data, headers=headers)
 
     if response.status_code == 200:
         print("Generated Subject:", response.json()['subject'])
@@ -102,24 +104,37 @@ def ai_suggestion_email(data):
 
 
 if __name__ == "__main__":
+    # Create a session to manage cookies
+    session = requests.Session()
+
     print("Testing Registration:")
     test_register()
     
     print("\nTesting Login:")
-    refresh, access = test_login()
+    session = test_login(session)
 
-    print("\nTesting CSV Upload:")
-    test_csv_upload()
+    if session:
+        # Extract the CSRF token from the session cookies
+        csrf_token = session.cookies.get('csrftoken')
 
-    # print("\nTesting Template Creation:")
-    # test_template_creation()
+        if csrf_token:
+            print("\nTesting CSV Upload:")
+            test_csv_upload(session, csrf_token)
 
-    # print("\nTesting Email Send:")
-    # test_send_email()
+            print("\nTesting Template Creation:")
+            test_template_creation(session, csrf_token)
 
-    # print("\nTesting AI Email Suggestions:")
-    # ai_suggestion_email(ai_data)
+            # Uncomment the following block to test email sending
+            # print("\nTesting Email Send:")
+            # test_send_email(session, csrf_token)
 
-    print("\nTesting Logout:")
-    if refresh:
-        test_logout(refresh)
+            # Uncomment the following block to test AI email suggestions
+            # print("\nTesting AI Email Suggestions:")
+            # ai_suggestion_email(session, csrf_token, ai_data)
+
+            print("\nTesting Logout:")
+            test_logout(session, csrf_token)
+        else:
+            print("CSRF Token missing, aborting further tests.")
+    else:
+        print("Login failed, skipping further tests.")

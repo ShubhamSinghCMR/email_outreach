@@ -21,6 +21,9 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import EmailTemplate
+from django.contrib.auth import login, logout
+from django.contrib.auth import get_user_model
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -41,12 +44,14 @@ class RegisterView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
+        email = request.data.get('email')
 
         # Check if username and password are provided
         if not username or not password:
             return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if user already exists
+        User = get_user_model()
         if User.objects.filter(username=username).exists():
             return Response({'error': 'User already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -66,41 +71,43 @@ class RegisterView(APIView):
                 ]
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create user
-        user = User.objects.create_user(username=username, password=password)
+        # Create the user
+        User = get_user_model()
+        user = User.objects.create_user(username=username, password=password, email=email)
         return Response({'message': 'User registered successfully.'}, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        
-        # Authenticate user
+
+        # Authenticate the user
         user = authenticate(username=username, password=password)
         if user is not None:
-            refresh = RefreshToken.for_user(user)
+            login(request, user)  # Log the user in
+
             return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
-        
+                'message': 'Login successful',
+                'username': user.username,
+            }, status=status.HTTP_200_OK)
+
         # Invalid credentials
         return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
     def post(self, request):
         try:
-            refresh_token = request.data.get("refresh")
-            token = RefreshToken(refresh_token)
-            token.blacklist()  # Ensures the token is blacklisted
+            logout(request)  # This clears the session for the user
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
+            logger.error(f"Error during logout for user {request.user.username}: {str(e)}")  # Log any errors
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class CSVUploadView(TemplateView):
     template_name = 'csv_validation.html'
 
 class CSVValidationView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can access this view
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
@@ -139,20 +146,46 @@ class CSVValidationView(APIView):
 
         except Exception as e:
             return JsonResponse({"error": [str(e)]}, status=400)
+        
+class CheckAuthenticationView(APIView):
+    permission_classes = [IsAuthenticated]
 
-                
+    def get(self, request):
+        if request.user.is_authenticated:
+            return Response({"message": "User is authenticated"}, status=200)
+        else:
+            return Response({"message": "User is not authenticated"}, status=401)
+
+class CreateTemplateView(TemplateView):
+    template_name = 'template-create.html'
+
 class TemplateEditorView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access this view
+
     def post(self, request):
-        template = request.data.get('template')
-        
-        if not template:
-            return Response({"error": "Template is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Validate placeholders (for simplicity, we just check for {first_name})
-        if '{first_name}' not in template:
-            return Response({"error": "Template must contain {first_name} placeholder."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({"message": "Template created successfully.", "template": template}, status=status.HTTP_200_OK)
+        try:
+            template = request.data.get('template')
+
+            # Check if the user is authenticated (session will automatically be checked)
+            if not request.user.is_authenticated:
+                return Response({"error": "User must be authenticated to create a template."}, status=status.HTTP_401_UNAUTHORIZED)
+
+            if not template:
+                return Response({"error": "Template is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Save the template to the database
+            new_template = EmailTemplate.objects.create(username=request.user, created_template=template)
+            new_template.save()
+
+            return Response({
+                "message": "Template created successfully.",
+                "template": new_template.created_template
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error creating template: {str(e)}")
+            return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class SendEmailView(APIView):
     def post(self, request):
