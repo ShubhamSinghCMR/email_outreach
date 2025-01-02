@@ -82,10 +82,8 @@
                 if (response.ok) {
                     responseMessageDiv.innerHTML = ` 
                         <div class="alert alert-success">
-                            Email sending started.
-                        </div>
-                        <div>Sent to: ${data.sent_to.join(', ')}</div>
-                        <div>Not Sent to: ${data.not_sent_to.join(', ')}</div>
+                        Sent to: ${data.sent_to.join(', ')}<br>
+                        Not Sent to: ${data.not_sent_to.join(', ')}</div>
                     `;
                 } else {
                     responseMessageDiv.innerHTML = ` 
@@ -104,6 +102,83 @@
                 `;
             }
         }
+        // Function to generate email content using AI
+async function generateEmailContent() {
+    const aiInput = document.getElementById("ai-input").value;
+    const responseMessageDiv = document.getElementById("response-message");
+
+    if (!aiInput) {
+        responseMessageDiv.style.display = 'block';
+        responseMessageDiv.innerHTML = `
+            <div class="alert alert-danger">
+                Input is required for generating email content.
+            </div>
+        `;
+        return;
+    }
+
+    // Get CSRF token from the form
+    const csrfToken = getCsrfToken();
+
+    try {
+        const response = await fetch("/api/users/ai-suggestions/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,  // CSRF Token here
+            },
+            body: JSON.stringify({ description: aiInput }),
+            credentials: "same-origin"  // Ensure cookies (for session auth) are included
+        });
+
+        // Check if the response is a JSON response
+        const contentType = response.headers.get("Content-Type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const responseText = await response.text();  // Get the response as text
+            console.error("Non-JSON response received:", responseText);  // Print the response
+            throw new Error("Received non-JSON response from the server");
+        }
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update the subject and email content fields with the AI-generated suggestions
+            document.getElementById("subject").value = data.subject.replace(/^['"]|['"]$/g, '');
+            document.getElementById("email-content").value = data.body;
+
+            responseMessageDiv.style.display = 'block';
+            responseMessageDiv.innerHTML = `
+                <div class="alert alert-success">
+                    Email content generated successfully.
+                </div>
+            `;
+        } else {
+            responseMessageDiv.style.display = 'block';
+            responseMessageDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    Error: ${data.error || 'Failed to generate content.'}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error("Error during fetch:", error);
+        responseMessageDiv.style.display = 'block';
+        responseMessageDiv.innerHTML = `
+            <div class="alert alert-danger">
+                An error occurred: ${error.message}
+            </div>
+        `;
+    }
+}
+ // Function to reset the form
+ function resetForm() {
+        // Clear the fields
+        document.getElementById("email-form").reset();
+        // Clear AI input and response message
+        document.getElementById("ai-input").value = '';
+        document.getElementById("response-message").style.display = 'none';
+    }
+
     </script>
 </head>
 <body>

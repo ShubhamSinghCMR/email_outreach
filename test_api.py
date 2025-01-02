@@ -130,8 +130,8 @@ if __name__ == "__main__":
             test_send_email(session, csrf_token)
 
             # Uncomment the following block to test AI email suggestions
-            # print("\nTesting AI Email Suggestions:")
-            # ai_suggestion_email(session, csrf_token, ai_data)
+            print("\nTesting AI Email Suggestions:")
+            ai_suggestion_email(session, csrf_token, ai_data)
 
             print("\nTesting Logout:")
             test_logout(session, csrf_token)
