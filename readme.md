@@ -77,7 +77,8 @@ ollama run llama3.2
 Alternatively, start the Ollama app from the Start menu to run the server automatically.
 
 # # 9.	Configure Email Credentials
-Set up your email credentials in the .env file located in the project folder.
+Set up your email credentials (Gmail ID and App Password) in the .env file located in the project folder.
+To generate your app password, visit: https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://myaccount.google.com/apppasswords&ved=2ahUKEwi25vTzhteKAxVEyDgGHTzoMwIQFnoECBgQAQ&usg=AOvVaw1rVibBR6kQTiUjqa0l_f8W
 
 # # 10.	Run Migrations and Start the Project
 1. Open a new terminal, activate the virtual environment, and run:
