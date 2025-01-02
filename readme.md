@@ -113,6 +113,7 @@ http://127.0.0.1:8000/admin/
 Use the following admin credentials:
 - Username: admin1
 - Password: admin1
+
 ---
 
 # Known Limitations or Assumptions
@@ -127,3 +128,14 @@ The system assumes that uploaded CSV files are formatted correctly. Invalid file
 
 - Internet Connectivity:
 The AI model and email service integrations require a stable internet connection for generating content and sending emails.
+
+---
+
+# Screenshots:
+![Screenshot 2025-01-02 152621](https://github.com/user-attachments/assets/2f7c4588-3529-473f-9be2-8b8579fe4042)
+
+![Screenshot 2025-01-02 152641](https://github.com/user-attachments/assets/72a916d8-4d9a-4ef3-a15e-e868aad7e333)
+
+![Screenshot 2025-01-02 152612](https://github.com/user-attachments/assets/c5781d1b-cbbe-454d-8404-57641cdeec12)
+
+![Screenshot 2025-01-02 152516](https://github.com/user-attachments/assets/f2b856a3-2c4f-40b0-b572-47149f196b62)
