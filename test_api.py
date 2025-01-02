@@ -14,9 +14,9 @@ email_data = {
     "subject": "Test Email",
     "message": "This is a test email sent from Django.",
     "recipient_list": [
-        "shubhamsinghcmr@gmaail.com",
-        "shubhamsinghcmr@gmail.com",
-        "itzzshubh@gmail.com",
+        "user1@gmaail.com",
+        "user2@gmail.com",
+        "user3@gmail.com",
     ],
 }
 
