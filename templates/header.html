@@ -20,6 +20,9 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
+                        <span id="loggeduser" class="nav-link" style="display:none; margin-right: 10px;">Hi: </span>
+                    </li>
+                    <li class="nav-item">
                         <a id="home-link" class="nav-link" href="/home/" style="display:none;">Home</a>
                     </li>
                     <li class="nav-item">
@@ -68,7 +71,12 @@
             .then(response => response.json())
             .then(data => {
                 if (data.message === "User is authenticated") {
-                    // Show logged-in options
+
+                    // Display loggeduser
+                    // console.log("Logged-in username:", data.loggeduserinx); 
+                    // document.getElementById("loggeduser").style.display = "inline-block";
+                    // document.getElementById("loggeduser").textContent = `Hi: ${data.loggeduserinx}`;
+                    // // Show logged-in options
                     document.getElementById("home-link").style.display = "block";
                     document.getElementById("csv-link").style.display = "block";
                     document.getElementById("template-link").style.display = "block";
@@ -76,6 +84,7 @@
                     document.getElementById("logout-link").style.display = "block";
                     document.getElementById("signin-link").style.display = "none";
                     document.getElementById("signup-link").style.display = "none";
+                    
                 } else {
                     // Show sign-in/signup options
                     document.getElementById("signin-link").style.display = "block";

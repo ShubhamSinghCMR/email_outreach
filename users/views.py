@@ -91,7 +91,7 @@ class LoginView(APIView):
 
             return Response({
                 'message': 'Login successful',
-                'username': user.username,
+                'loggeduserinx': user.username,
             }, status=status.HTTP_200_OK)
 
         # Invalid credentials
@@ -155,7 +155,7 @@ class CheckAuthenticationView(APIView):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return Response({"message": "User is authenticated"}, status=200)
+            return Response({"message": "User is authenticated", "username": request.user.username}, status=200)
         else:
             return Response({"message": "User is not authenticated"}, status=401)
 
@@ -264,3 +264,22 @@ class AIGenerateSuggestionsView(APIView):
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
             raise Exception(f"Error running Ollama: {str(e)}")
+
+class UserTemplatesView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can access this view
+
+    def get(self, request):
+        try:
+            # Get all templates for the current logged-in user
+            templates = EmailTemplate.objects.filter(username=request.user)
+            
+            # Serialize the templates (assuming you have a serializer for EmailTemplate)
+            template_data = [{"id": template.id, "created_template": template.created_template} for template in templates]
+
+            return Response({
+                "templates": template_data
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error fetching templates for user {request.user.username}: {str(e)}")
+            return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

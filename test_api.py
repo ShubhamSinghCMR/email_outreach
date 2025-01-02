@@ -103,6 +103,15 @@ def ai_suggestion_email(session, csrf_token, data):
     else:
         print("Error in AI Suggestion:", response.status_code, response.json())
 
+# Test Get User Templates
+def test_user_templates(session):
+    response = session.get(f"{BASE_URL}get-user-templates/")
+    print("User Templates Response:", response.status_code, response.json())
+    if response.status_code == 200:
+        print("Templates retrieved:", response.json()['templates'])
+    else:
+        print("Error retrieving templates:", response.status_code, response.json())
+
 
 if __name__ == "__main__":
     # Create a session to manage cookies
@@ -132,6 +141,10 @@ if __name__ == "__main__":
             # Uncomment the following block to test AI email suggestions
             print("\nTesting AI Email Suggestions:")
             ai_suggestion_email(session, csrf_token, ai_data)
+
+            # Test getting user templates
+            print("\nTesting User Templates:")
+            test_user_templates(session)
 
             print("\nTesting Logout:")
             test_logout(session, csrf_token)

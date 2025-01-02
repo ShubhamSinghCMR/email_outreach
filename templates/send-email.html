@@ -6,6 +6,18 @@
     <title>Send Email</title>
     {% include 'header.html' %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            .carousel-control-prev-icon,
+            .carousel-control-next-icon {
+                background-color: black; 
+            }
+            .carousel-inner .carousel-item {
+            width: 70%; /* Set width as a percentage */
+            margin-left: 150px; /* Add left spacing */
+            margin-bottom: 100px; /* Add bottom spacing */
+        }
+        </style>
+        
     <script>
         // Redirect to login if not authenticated, before page loads
         window.onload = function() {
@@ -180,6 +192,83 @@ async function generateEmailContent() {
     }
 
     </script>
+
+<script>
+    // Function to fetch and display templates for the current logged-in user
+   // Function to fetch and display templates for the current logged-in user
+async function fetchTemplates() {
+    const responseMessageDiv = document.getElementById("response-message");
+
+    try {
+        const csrfToken = getCsrfToken();
+        const response = await fetch("/api/users/get-user-templates/", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,  // CSRF Token here
+            },
+            credentials: "same-origin"  // Ensure cookies (for session auth) are included
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            const carouselContainer = document.getElementById("carousel-templates");
+            carouselContainer.innerHTML = '';  // Clear the previous templates
+
+            if (data.templates.length > 0) {
+                data.templates.forEach((template, index) => {
+                    const templateItem = document.createElement('div');
+                    templateItem.classList.add('carousel-item');
+                    if (index === 0) templateItem.classList.add('active');  // Ensure the first item is active
+
+                    templateItem.innerHTML = `
+                        <div class="d-block w-100" style="background-color: #f8f9fa; padding: 20px;" onclick="insertTemplateContent('${template.created_template}')">
+                            <h5>Template ${template.id}</h5>
+                            <p>${template.created_template}</p>
+                        </div>
+                    `;
+                    carouselContainer.appendChild(templateItem);
+                });
+            } else {
+                responseMessageDiv.style.display = 'block';
+                responseMessageDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        No templates available.
+                    </div>
+                `;
+            }
+        } else {
+            responseMessageDiv.style.display = 'block';
+            responseMessageDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    Error fetching templates: ${data.error || 'Failed to load templates.'}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error("Error during fetch:", error);
+        responseMessageDiv.style.display = 'block';
+        responseMessageDiv.innerHTML = `
+            <div class="alert alert-danger">
+                An error occurred: ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Function to insert template content into the email content field
+function insertTemplateContent(templateBody) {
+    document.getElementById("email-content").value = templateBody;
+}
+
+
+
+    // Call the fetchTemplates function when the page loads
+    window.onload = function() {
+        fetchTemplates();
+    };
+    </script>
+    
 </head>
 <body>
     <div class="container mt-5">
@@ -219,22 +308,23 @@ async function generateEmailContent() {
         </div>
 
         <!-- Email Templates Carousel -->
-        <div class="mt-5">
-            <h3>Email Templates</h3>
-            <div id="template-carousel" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-inner" id="carousel-templates">
-                    <!-- Template items will be inserted dynamically -->
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#template-carousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#template-carousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div>
+<div class="mt-5">
+    <h3>Email Templates</h3>
+    <div id="template-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner" id="carousel-templates">
+            <!-- Template items will be inserted dynamically -->
         </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#template-carousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#template-carousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
