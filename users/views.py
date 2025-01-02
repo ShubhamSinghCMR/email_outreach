@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .validators import validate_password_strength
 from django.core.exceptions import ValidationError
+import re
 import pandas as pd
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
@@ -144,7 +145,7 @@ class CSVValidationView(APIView):
             # Return the response as JSON with the valid data
             return JsonResponse({
                 "message": "File uploaded and validated successfully.",
-                "data": df.head().to_dict(orient='records'),
+                "data": df.to_dict(orient='records'),
             }, status=200)
 
         except Exception as e:
@@ -199,37 +200,62 @@ class SendEmailView(APIView):
         message = request.data.get('message')
         recipient_list = request.data.get('recipient_list')
 
+        # Print the incoming data
+        print(f"Received email data: Subject: {subject}, Message: {message}, Recipient List: {recipient_list}")
+
         # Validate the input
         if not subject or not message or not recipient_list:
+            print("Missing required fields: subject, message, or recipient_list.")
             return Response({"error": "Subject, message, and recipient list are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define valid domains
+        valid_domains = ["gmail.com", "yahoo.com", "outlook.com"]  # Add any other domains you need to validate
 
         # Validate email addresses
         valid_emails = []
         invalid_emails = []
+        # print("Starting email validation")
         for email in recipient_list:
             try:
-                validate_email(email)  # Validate the email format
-                valid_emails.append(email)
-            except EmailNotValidError as e:
+                print(f"Validating: {email}")
+                # Regular expression for simple email validation
+                regex = r'^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)$'
+                match = re.match(regex, email)  # Simple email format validation
+                if match:
+                    domain = match.group(1)
+                    if domain in valid_domains:  # Check if domain is valid
+                        valid_emails.append(email)
+                    else:
+                        invalid_emails.append(email)
+                        # print(f"Invalid domain in email address: {email}")
+                else:
+                    invalid_emails.append(email)
+                    # print(f"Invalid email address: {email}")
+            except Exception as e:
                 invalid_emails.append(email)
-                logger.error(f"Invalid email address: {email}. Error: {str(e)}")
+                # print(f"Error validating {email}: {str(e)}")
 
-        # If there are no valid emails, return an error
-        if not valid_emails:
-            return Response({"error": "No valid email addresses found in the recipient list."}, status=status.HTTP_400_BAD_REQUEST)
+        # print(f"Valid emails: {valid_emails}, Invalid emails: {invalid_emails}")
 
         # Enqueue the email sending task using Celery
-        send_email_task.delay(subject, message, valid_emails)
-
-
+        try:
+            send_email_task.delay(subject, message, valid_emails)
+            # print("Email sending task has been queued.")
+        except Exception as e:
+            print(f"Failed to enqueue email sending task: {str(e)}")
 
         # Return the response showing emails sent and failed ones
-        return Response({
+        response_data = {
             "message": "Email sending started. Emails will be sent asynchronously.",
             "sent_to": valid_emails,
             "not_sent_to": invalid_emails
-        }, status=status.HTTP_200_OK)
+        }
+        # print(f"Response data: {response_data}")
 
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+    
 class AIGenerateSuggestionsView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure user is authenticated
 
