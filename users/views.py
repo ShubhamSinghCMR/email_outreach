@@ -18,6 +18,7 @@ from rest_framework.permissions import IsAuthenticated
 import ollama
 import subprocess
 from django.views.generic import TemplateView
+from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -96,34 +97,50 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class CSVUploadView(APIView):
+class CSVUploadView(TemplateView):
+    template_name = 'csv_validation.html'
+
+class CSVValidationView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
         file = request.FILES.get('file')
-        
+
         if not file:
-            return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return JsonResponse({"error": "No file uploaded."}, status=400)
+
         try:
             # Read the CSV file using pandas
             df = pd.read_csv(file)
-            
-            # Validate necessary columns exist
-            required_columns = ['email', 'first_name']  # Example columns
+
+            # Define required columns
+            required_columns = ['email', 'first_name']
+            errors = []
+
+            # Check for missing required columns
             for column in required_columns:
                 if column not in df.columns:
-                    raise ValidationError(f"Missing required column: {column}")
-            
-            # Optionally, you can store this data in the database for future use or just return the data for now
-            return Response({
+                    errors.append(f"Missing required column: {column}")
+
+            # Check for extra columns
+            extra_columns = [col for col in df.columns if col not in required_columns]
+            if extra_columns:
+                errors.append(f"Extra columns found: {', '.join(extra_columns)}")
+
+            if errors:
+                # Return all errors in a combined response
+                return JsonResponse({"error": errors}, status=400)
+
+            # Return the response as JSON with the valid data
+            return JsonResponse({
                 "message": "File uploaded and validated successfully.",
-                "data": df.head().to_dict(orient='records')  # Just show a preview of the uploaded data
-            }, status=status.HTTP_200_OK)
-        
+                "data": df.head().to_dict(orient='records'),
+            }, status=200)
+
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return JsonResponse({"error": [str(e)]}, status=400)
+
+                
 class TemplateEditorView(APIView):
     def post(self, request):
         template = request.data.get('template')

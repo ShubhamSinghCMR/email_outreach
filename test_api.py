@@ -67,8 +67,8 @@ def test_logout(refresh_token):
 
 # Test CSV Upload
 def test_csv_upload():
-    with open('testcsv.csv', 'rb') as file:
-        response = requests.post(f"{BASE_URL}upload-csv/", files={'file': file})
+    with open('testcsv2.csv', 'rb') as file:
+        response = requests.post(f"{BASE_URL}csv-validation/", files={'file': file})
     print("CSV Upload Response:", response.status_code, response.json())
 
 # Test Template Creation
@@ -108,8 +108,8 @@ if __name__ == "__main__":
     print("\nTesting Login:")
     refresh, access = test_login()
 
-    # print("\nTesting CSV Upload:")
-    # test_csv_upload()
+    print("\nTesting CSV Upload:")
+    test_csv_upload()
 
     # print("\nTesting Template Creation:")
     # test_template_creation()
